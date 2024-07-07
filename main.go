@@ -139,13 +139,17 @@ func main() {
 			log.Info().Msgf("Here are the files we found in %s: %+v", storagePath, files)
 
 			var metas []FileMeta
-			for _, file := range files {
+			totalFiles := len(files)
+
+			for i, file := range files {
 				meta, err := getFileMeta(file)
 				if err != nil {
 					log.Error().Err(err).Msgf("Error getting file metadata: %s", err)
 					continue
 				}
 				metas = append(metas, meta)
+				percentComplete := float64(i+1) / float64(totalFiles) * 100
+				log.Info().Msgf("%.2f%% - Hashing file: %s\n", percentComplete, file)
 			}
 
 			if err := serializeFileMeta(metas, outputPath); err != nil {
