@@ -26,6 +26,7 @@ func GetHash(outputPath, storagePath string) *cobra.Command {
 			log.Info().Msgf("Here are the fileops we found in %s: %+v", storagePath, files)
 
 			numCPU := runtime.NumCPU()
+			log.Info().Msgf("There are %d number of CPU cores - let's use them all.", numCPU)
 			var wg sync.WaitGroup
 			fileChan := make(chan string, len(files))
 			metaChan := make(chan fileops.FileMeta, len(files))
