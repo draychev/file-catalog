@@ -149,7 +149,7 @@ func main() {
 				}
 				metas = append(metas, meta)
 				percentComplete := float64(i+1) / float64(totalFiles) * 100
-				log.Info().Msgf("%.2f%% - Hashing file: %s\n", percentComplete, file)
+				fmt.Printf("%.2f%% - Hashing file: %s\n", percentComplete, file)
 			}
 
 			if err := serializeFileMeta(metas, outputPath); err != nil {
@@ -182,7 +182,39 @@ func main() {
 
 	showCmd.Flags().StringVarP(&outputPath, "input", "i", "file_metadata.json", "Path to the input file")
 
-	rootCmd.AddCommand(hashCmd, showCmd)
+	var dupesCmd = &cobra.Command{
+		Use:   "dupes",
+		Short: "Find and display files with identical hashes.",
+		Run: func(cmd *cobra.Command, args []string) {
+			metas, err := deserializeFileMeta(outputPath)
+			if err != nil {
+				log.Error().Err(err).Msgf("Error deserializing metadata from: %s", outputPath)
+				return
+			}
+
+			hashMap := make(map[string][]FileMeta)
+
+			for _, meta := range metas {
+				hashMap[meta.Hash] = append(hashMap[meta.Hash], meta)
+			}
+
+			fmt.Printf("%-64s %-30s %-25s %-30s %-25s\n", "Hash", "First File Name", "First Created At", "Second File Name", "Second Created At")
+			for hash, files := range hashMap {
+				if len(files) > 1 {
+					for i := 0; i < len(files)-1; i++ {
+						for j := i + 1; j < len(files); j++ {
+							fmt.Printf("%-64s %-30s %-25s %-30s %-25s\n",
+								hash, files[i].FileName, files[i].CreatedAt, files[j].FileName, files[j].CreatedAt)
+						}
+					}
+				}
+			}
+		},
+	}
+
+	dupesCmd.Flags().StringVarP(&outputPath, "input", "i", "file_metadata.json", "Path to the input file")
+
+	rootCmd.AddCommand(hashCmd, showCmd, dupesCmd)
 	if err := rootCmd.Execute(); err != nil {
 		log.Error().Err(err).Msgf("Error executing command: %s", err)
 	}
