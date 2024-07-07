@@ -21,3 +21,7 @@ clean:
 	@echo "Cleaned $(BIN_DIR)"
 
 .PHONY: build clean
+
+.PHONY: run
+run: clean build
+	./bin/file-catalog hash
