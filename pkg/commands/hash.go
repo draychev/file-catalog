@@ -64,7 +64,7 @@ func GetHash(outputPath, storagePath string) *cobra.Command {
 				metas = append(metas, meta)
 				processedFiles++
 				percentComplete := float64(processedFiles) / float64(totalFiles) * 100
-				fmt.Printf("%.2f%% - Hashing files: %s\n", percentComplete, meta.FileName)
+				fmt.Printf("%.2f%% - Hashing: %s\n", percentComplete, meta.FileName)
 			}
 
 			if err := storage.SerializeFileMeta(metas, outputPath); err != nil {
