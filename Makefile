@@ -1,7 +1,7 @@
 #!make
 
 # Variables
-BINARY_NAME := filehasher
+BINARY_NAME := file-catalog
 SRC_DIR := .
 BIN_DIR := ./bin
 SRC_FILES := $(wildcard $(SRC_DIR)/*.go)

@@ -103,7 +103,7 @@ func main() {
 	var outputPath string
 
 	var rootCmd = &cobra.Command{
-		Use:   "filehasher",
+		Use:   "file-catalog",
 		Short: "File Hasher is a tool to hash files and store their metadata.",
 	}
 
