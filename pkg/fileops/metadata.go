@@ -12,7 +12,7 @@ func GetMetadata(filePath string) (FileMeta, error) {
 		return FileMeta{}, err
 	}
 
-	hash, err := HashCRC32(filePath)
+	hash, err := HashSHA256(filePath)
 	if err != nil {
 		return FileMeta{}, err
 	}
