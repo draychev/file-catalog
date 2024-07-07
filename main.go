@@ -11,8 +11,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/draychev/go-toolbox/pkg/logger"
 	"github.com/spf13/cobra"
 )
+
+var log = logger.NewPretty("file-hasher")
 
 // FileMeta holds metadata of a file.
 type FileMeta struct {
@@ -104,25 +107,28 @@ func main() {
 
 	var rootCmd = &cobra.Command{
 		Use:   "file-catalog",
-		Short: "File Hasher is a tool to hash files and store their metadata.",
+		Short: "File Catalog is a tool to hash files and store their metadata.",
 	}
 
 	var hashCmd = &cobra.Command{
 		Use:   "hash",
 		Short: "Hash files in the specified directory.",
 		Run: func(cmd *cobra.Command, args []string) {
+			log.Info().Msgf("Hashing files in directory %s", storagePath)
 			files, err := ioutil.ReadDir(storagePath)
 			if err != nil {
-				fmt.Println("Error reading directory:", err)
+				log.Error().Err(err).Msgf("Error reading directory:", err)
 				return
 			}
+
+			log.Info().Msgf("Here are the files we found in %s: %+v", storagePath, files)
 
 			var metas []FileMeta
 			for _, file := range files {
 				if !file.IsDir() {
 					meta, err := getFileMeta(filepath.Join(storagePath, file.Name()))
 					if err != nil {
-						fmt.Println("Error getting file metadata:", err)
+						log.Error().Err(err).Msgf("Error getting file metadata:", err)
 						continue
 					}
 					metas = append(metas, meta)
@@ -130,9 +136,9 @@ func main() {
 			}
 
 			if err := serializeFileMeta(metas, outputPath); err != nil {
-				fmt.Println("Error serializing metadata:", err)
+				log.Error().Err(err).Msgf("Error serializing metadata:", err)
 			} else {
-				fmt.Println("File metadata has been serialized to", outputPath)
+				log.Info().Msgf("File metadata has been serialized to %s", outputPath)
 			}
 		},
 	}
@@ -146,7 +152,7 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			metas, err := deserializeFileMeta(outputPath)
 			if err != nil {
-				fmt.Println("Error deserializing metadata:", err)
+				log.Error().Err(err).Msgf("Error deserializing metadata to :", outputPath)
 				return
 			}
 
@@ -161,6 +167,6 @@ func main() {
 
 	rootCmd.AddCommand(hashCmd, showCmd)
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println("Error executing command:", err)
+		log.Error().Err(err).Msgf("Error executing command:", hashCmd)
 	}
 }
