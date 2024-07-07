@@ -101,6 +101,21 @@ func deserializeFileMeta(inputPath string) ([]FileMeta, error) {
 	return metas, nil
 }
 
+// collectFiles recursively collects files in the specified directory.
+func collectFiles(dir string) ([]string, error) {
+	var files []string
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			files = append(files, path)
+		}
+		return nil
+	})
+	return files, err
+}
+
 func main() {
 	var storagePath string
 	var outputPath string
@@ -115,9 +130,9 @@ func main() {
 		Short: "Hash files in the specified directory.",
 		Run: func(cmd *cobra.Command, args []string) {
 			log.Info().Msgf("Hashing files in directory %s", storagePath)
-			files, err := ioutil.ReadDir(storagePath)
+			files, err := collectFiles(storagePath)
 			if err != nil {
-				log.Error().Err(err).Msgf("Error reading directory:", err)
+				log.Error().Err(err).Msgf("Error reading directory: %s", err)
 				return
 			}
 
@@ -125,18 +140,16 @@ func main() {
 
 			var metas []FileMeta
 			for _, file := range files {
-				if !file.IsDir() {
-					meta, err := getFileMeta(filepath.Join(storagePath, file.Name()))
-					if err != nil {
-						log.Error().Err(err).Msgf("Error getting file metadata:", err)
-						continue
-					}
-					metas = append(metas, meta)
+				meta, err := getFileMeta(file)
+				if err != nil {
+					log.Error().Err(err).Msgf("Error getting file metadata: %s", err)
+					continue
 				}
+				metas = append(metas, meta)
 			}
 
 			if err := serializeFileMeta(metas, outputPath); err != nil {
-				log.Error().Err(err).Msgf("Error serializing metadata:", err)
+				log.Error().Err(err).Msgf("Error serializing metadata: %s", err)
 			} else {
 				log.Info().Msgf("File metadata has been serialized to %s", outputPath)
 			}
@@ -152,7 +165,7 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			metas, err := deserializeFileMeta(outputPath)
 			if err != nil {
-				log.Error().Err(err).Msgf("Error deserializing metadata to :", outputPath)
+				log.Error().Err(err).Msgf("Error deserializing metadata from: %s", outputPath)
 				return
 			}
 
@@ -167,6 +180,6 @@ func main() {
 
 	rootCmd.AddCommand(hashCmd, showCmd)
 	if err := rootCmd.Execute(); err != nil {
-		log.Error().Err(err).Msgf("Error executing command:", hashCmd)
+		log.Error().Err(err).Msgf("Error executing command: %s", err)
 	}
 }
