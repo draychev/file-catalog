@@ -2,7 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"github.com/draychev/go-toolbox/pkg/envvar"
 	"runtime"
+	"strconv"
 	"sync"
 
 	"github.com/spf13/cobra"
@@ -25,15 +27,19 @@ func GetHash(outputPath, storagePath string) *cobra.Command {
 
 			log.Info().Msgf("Here are the files we found in %s: %+v", storagePath, files)
 
-			numCPU := runtime.NumCPU()
-			log.Info().Msgf("There are %d number of CPU cores - let's use them all.", numCPU)
+			cpuMultFactor := 10
+			if fact, err := strconv.Atoi(envvar.GetEnv("CPU_MULT_FACTOR", "10")); err != nil {
+				cpuMultFactor = fact
+			}
+			numGoroutines := runtime.NumCPU() * cpuMultFactor
+			log.Info().Msgf("There are %d number of CPU cores - let's use %d goroutines.", runtime.NumCPU(), numGoroutines)
 			var wg sync.WaitGroup
 			fileChan := make(chan string, len(files))
 			metaChan := make(chan fileops.FileMeta, len(files))
 
-			wg.Add(numCPU)
+			wg.Add(numGoroutines)
 
-			for i := 0; i < numCPU; i++ {
+			for i := 0; i < numGoroutines; i++ {
 				go func() {
 					defer wg.Done()
 					for file := range fileChan {
