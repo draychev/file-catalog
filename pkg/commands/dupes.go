@@ -27,7 +27,7 @@ func GetDupes(outputPath string) *cobra.Command {
 				hashMap[meta.Hash] = append(hashMap[meta.Hash], meta)
 			}
 
-			fmt.Printf("%-64s %-30s %-25s %-30s %-25s\n", "Hash", "First File", "Created At", "Second File", "Created At")
+			fmt.Printf("%-64s %-30s %-25s %-30s %-25s\n", "HashCRC32", "First File", "Created At", "Second File", "Created At")
 			for hash, files := range hashMap {
 				if len(files) > 1 {
 					for i := 0; i < len(files)-1; i++ {

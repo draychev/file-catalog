@@ -14,16 +14,16 @@ import (
 func GetHash(outputPath, storagePath string) *cobra.Command {
 	var hashCmd = &cobra.Command{
 		Use:   "hash",
-		Short: "Hash fileops in the specified directory.",
+		Short: "HashCRC32 files in the specified directory.",
 		Run: func(cmd *cobra.Command, args []string) {
-			log.Info().Msgf("Hashing fileops in directory %s", storagePath)
+			log.Info().Msgf("Hashing files in directory %s", storagePath)
 			files, err := fileops.CollectFiles(storagePath)
 			if err != nil {
 				log.Error().Err(err).Msgf("Error reading directory: %s", err)
 				return
 			}
 
-			log.Info().Msgf("Here are the fileops we found in %s: %+v", storagePath, files)
+			log.Info().Msgf("Here are the files we found in %s: %+v", storagePath, files)
 
 			numCPU := runtime.NumCPU()
 			log.Info().Msgf("There are %d number of CPU cores - let's use them all.", numCPU)
@@ -39,7 +39,7 @@ func GetHash(outputPath, storagePath string) *cobra.Command {
 					for file := range fileChan {
 						meta, err := fileops.GetMetadata(file)
 						if err != nil {
-							log.Error().Err(err).Msgf("Error getting fileops metadata: %s", err)
+							log.Error().Err(err).Msgf("Error getting files metadata: %s", err)
 							continue
 						}
 						metaChan <- meta
@@ -64,7 +64,7 @@ func GetHash(outputPath, storagePath string) *cobra.Command {
 				metas = append(metas, meta)
 				processedFiles++
 				percentComplete := float64(processedFiles) / float64(totalFiles) * 100
-				fmt.Printf("%.2f%% - Hashing fileops: %s\n", percentComplete, meta.FileName)
+				fmt.Printf("%.2f%% - Hashing files: %s\n", percentComplete, meta.FileName)
 			}
 
 			if err := storage.SerializeFileMeta(metas, outputPath); err != nil {
